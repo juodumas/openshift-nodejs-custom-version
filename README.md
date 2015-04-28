@@ -5,12 +5,18 @@ Couldn't get [ryanj/nodejs-custom-version-openshift][1] to work (OpenShift seems
 
 [1]: https://github.com/ryanj/nodejs-custom-version-openshift
 
-Example usage:
+## Usage
 
-1. Create `rhc app create nodeapp nodejs mongodb-2 --scaling --from-code=git://github.com/juodumas/openshift-nodejs-custom-version --timeout 600`
-2. `rhc scale-cartridge nodejs --app nodeapp --min 1 --max 2`
-    A
+1. Create a node app (this step will take a while):
+
+    `rhc app create nodeapp nodejs mongodb-2 --scaling --from-code=git://github.com/juodumas/openshift-nodejs-custom-version --timeout 1200 --nogit`
     
-This step will take a while. The `--scaling` options is used only to get a separate gear for the database. The `.openshift/action_hooks` scripts for deploying custom node version don't support nodejs scaling at the moment, so node Scaling for it should be disabled for production (though it should be simple to impement).
+2. The `--scaling` option above was used to get a separate gear for the database. The `.openshift/action_hooks` scripts for deploying custom node version don't support nodejs scaling at the moment, so we disable node scaling (though it should be simple to implement by mostly copying the contents of `action_hooks/pre_build` to `action_hooks/deploy`):
+    
+    `rhc scale-cartridge nodejs --app nodeapp --min 1 --max 1`
 
-Edit `engines.node` in `package.json` to specify your node version.
+3. Clone the app's repository:
+
+    `rhc git-clone nodeapp`
+
+4. Now edit the package.json file in the cloned repository and specify your desired node version in engines.node.
