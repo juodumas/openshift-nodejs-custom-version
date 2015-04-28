@@ -1,0 +1,37 @@
+#!/bin/sh
+# https://developers.openshift.com/en/managing-action-hooks.html
+
+# Set prefix for n.
+export N_PREFIX="$OPENSHIFT_DATA_DIR/n"
+# Parse node version from package.json.
+node_ver=$(sed -rn '/^\s*"node"\s*:/{ s/[^0-9.]+//gp }' "$OPENSHIFT_REPO_DIR/package.json")
+# Install n
+echo "PRE_BUILD: Installing n for node"
+cd "$OPENSHIFT_NODEJS_DIR"
+npm install n
+# Installing kexec if it is not already installed (reinstalling takes too long).
+if ! node -e "try{require('kexec')} catch(e) {process.exit(1)}"; then
+    echo "PRE_BUILD: Installing kexec for node"
+    npm install kexec
+fi
+# Install detected node version.
+echo "PRE_BUILD: Ensuring node $node_ver is installed"
+n $node_ver
+# Prepare $OPENSHIFT_DATA_DIR/.profile_for_node.
+prf="$OPENSHIFT_DATA_DIR/.profile_for_node"
+echo "export N_VERSION=$node_ver" > "$prf"
+echo 'export N_PREFIX="$OPENSHIFT_DATA_DIR/n"' >> "$prf"
+echo 'export N_NODE=$(n bin $N_VERSION)' >> "$prf"
+echo 'export PATH=$(dirname "$N_NODE"):$PATH' >> "$prf"
+# Source .profile_for_node from .bash_profile.
+if ! test -f "$OPENSHIFT_DATA_DIR/.bash_profile" || \
+   ! grep -q '\. \$OPENSHIFT_DATA_DIR/\.profile_for_node' "$OPENSHIFT_DATA_DIR/.bash_profile"
+then
+    echo "PRE_BUILD: Making \$OPENSHIFT_DATA_DIR/.bash_profile source .profile_for_node"
+    echo '. $OPENSHIFT_DATA_DIR/.profile_for_node' >> "$OPENSHIFT_DATA_DIR/.bash_profile"
+fi
+
+#  Move package.json file out of the way in pre_build, so that the OpenShift
+#  git post-receive hook doesn't use the old npm version to install
+#  dependencies.
+mv "$OPENSHIFT_REPO_DIR/package.json" "$OPENSHIFT_DATA_DIR/package.json.moved-by-pre-build"

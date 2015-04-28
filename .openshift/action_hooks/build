@@ -1,0 +1,12 @@
+#!/bin/sh
+# https://developers.openshift.com/en/managing-action-hooks.html
+
+# Source the env prepared in pre_build.
+. "$OPENSHIFT_DATA_DIR/.profile_for_node"
+
+# Restore package.json (see the pre_build script).
+mv "$OPENSHIFT_DATA_DIR/package.json.moved-by-pre-build" "$OPENSHIFT_REPO_DIR/package.json"
+
+# Install packages with npm from current PATH.
+(cd "$OPENSHIFT_REPO_DIR"; export TMPDIR="/tmp"; npm install -d)
+

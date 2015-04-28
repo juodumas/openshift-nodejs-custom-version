@@ -1,0 +1,5 @@
+#!/bin/sh
+# https://developers.openshift.com/en/managing-action-hooks.html
+
+# Source the env prepared in pre_build.
+. "$OPENSHIFT_DATA_DIR/.profile_for_node"

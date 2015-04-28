@@ -1,0 +1,16 @@
+{
+  "name": "OpenShift-Node-App",
+  "version": "1.0.0",
+
+  "engines": {
+    "node": "=0.12.2",
+    "npm": ">=1.0.0"
+  },
+
+  "dependencies": {},
+  "devDependencies": {},
+  "bundleDependencies": [],
+
+  "private": true,
+  "main": "server.js"
+}
